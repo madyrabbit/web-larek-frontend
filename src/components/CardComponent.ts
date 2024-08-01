@@ -1,6 +1,3 @@
-// import { ProductInfo, UserActions } from '../definitions';
-// import { findElement } from '../helpers/domHelpers';
-
 import { BaseWidget } from './base/BaseWidgetUtils';
 import { IProductInfo, IActions } from '../types';
 import { ensureElement } from '../utils/utils';

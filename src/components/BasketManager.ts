@@ -1,5 +1,3 @@
-// import { BaseComponent } from './base/BaseComponent';
-// import { createNode, findElement } from './../utils/domHelpers';
 import { BaseWidget } from './base/BaseWidgetUtils';
 import { createElement, ensureElement } from './../utils/utils';
 import { ICartView } from '../types';

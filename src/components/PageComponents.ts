@@ -1,8 +1,3 @@
-// import { BaseComponent } from './base/BaseComponent';
-// import { EventManager } from './base/EventManager';
-// import { findElement } from '../helpers/domHelpers';
-// import { PageInterface } from '../definitions';
-
 import { BaseWidget } from './base/BaseWidgetUtils';
 import { IEvents } from './base/events';
 import { IPageInterface } from '../types';
