@@ -86,7 +86,7 @@ eventHub.on('preview:updated', (product: IItem) => {
         image: product.image,
         price: product.price,
         category: product.category,
-        buttonTitle: appState.shoppingBasket.includes(product) ? 'Купить' : 'Удалить из корзины',
+        buttonTitle: !appState.shoppingBasket.includes(product) ? 'Купить' : 'Удалить из корзины',
     });
     console.log('Рендеринг модального окна');
     modal.render({
@@ -98,9 +98,12 @@ eventHub.on('preview:updated', (product: IItem) => {
 
 // Добавление и удаление продуктов из корзины
 eventHub.on('product:toggle', (product: IItem) => {
-    if (!appState.shoppingBasket.includes(product)) {
+    console.log('Попытка переключить продукт:', product);
+    if (appState.shoppingBasket.includes(product)) {
+        console.log('Продукт добавляется в корзину:', product);
         eventHub.emit('product:add', product);
     } else {
+        console.log('Продукт удаляется из корзины:', product);
         eventHub.emit('product:remove', product);
     }
 });
@@ -136,7 +139,7 @@ eventHub.on('cart:updated', (products: IItem[]) => {
 });
 
 // Открытие корзины
-eventHub.on('basket:open', () => {
+eventHub.on('shoppingCart:open', () => {
     console.log('Событие shoppingCart:open вызвано');
     modal.render({
         content: shoppingCart.renderWidget({}),
@@ -144,26 +147,17 @@ eventHub.on('basket:open', () => {
     console.log('Модальное окно с корзиной отрендерено');
 });
 
-
-// eventHub.on('cart:open', () => {
-//     console.log('Событие shoppingCart:open вызвано');
-//     modal.render({
-//         content: shoppingCart.renderWidget({}),
-//     });
-//     console.log('Модальное окно с корзиной отрендерено');
-// });
-
-// document.addEventListener('DOMContentLoaded', () => {
-//     const cartButton = document.getElementById('cart-button');
-//     if (cartButton) {
-//         cartButton.addEventListener('click', () => {
-//             console.log('Кнопка корзины нажата');
-//             eventHub.emit('shoppingCart:open');
-//         });
-//     } else {
-//         console.error('Элемент с id "cart-button" не найден');
-//     }
-// });
+document.addEventListener('DOMContentLoaded', () => {
+    const headerButton = document.querySelector('.header__basket');
+    if (headerButton) {
+        headerButton.addEventListener('click', () => {
+            console.log('Кнопка корзины нажата');
+            eventHub.emit('shoppingCart:open');
+        });
+    } else {
+        console.error('Элемент "header__basket" не найден');
+    }
+});
 
 // Открытие формы доставки
 eventHub.on('order:begin', () => {
@@ -180,7 +174,7 @@ eventHub.on('order:begin', () => {
 
 // Смена способа оплаты
 eventHub.on('payment:change', (target: HTMLElement) => {
-    if (!target.classList.contains('active-button')) {
+    if (!target.classList.contains('button_alt-active')) {
         paymentForm.switchPaymentMethod(target);
         appState.currentTransaction.methodOfPayment = elementCategories[target.getAttribute('name')];
         console.log(appState.currentTransaction);

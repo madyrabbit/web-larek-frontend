@@ -6,55 +6,55 @@ import { EventEmitter } from './base/events';
 // Класс Cart управляет корзиной покупок на сайте
 export class ShoppingCart extends BaseWidget<ICartView> {
     // Элементы интерфейса корзины
-	protected itemList: HTMLElement; // Список товаров в корзине
-	protected totalPriceElement: HTMLElement; // Элемент для отображения общей стоимости
-	protected checkoutButton: HTMLButtonElement; // Кнопка оформления заказа
+	protected _itemList: HTMLElement; // Список товаров в корзине
+	protected _totalPriceElement: HTMLElement; // Элемент для отображения общей стоимости
+	protected _checkoutButton: HTMLButtonElement; // Кнопка оформления заказа
 
     // Конструктор класса Cart
-	constructor(hostElement: HTMLElement, protected eventHub: EventEmitter) {
-		super(hostElement);
+	constructor(container: HTMLElement, protected eventHub: EventEmitter) {
+		super(container);
 
-        // Находим элементы в DOM
-		this.itemList = ensureElement<HTMLElement>('.basket__list', this.containerElement);
-		this.totalPriceElement = this.containerElement.querySelector('.basket__price');
-		this.checkoutButton = this.containerElement.querySelector('.basket__button');
+    // Находим элементы в DOM
+		this._itemList = ensureElement<HTMLElement>('.basket__list', this.container);
+		this._totalPriceElement = this.container.querySelector('.basket__price');
+		this._checkoutButton = this.container.querySelector('.basket__button');
 
-        // Добавляем обработчик события на кнопку оформления заказа
-		if (this.checkoutButton) {
-			this.checkoutButton.addEventListener('click', () => {
-				eventHub.emit('checkout:initiate');
-			});
+    // Добавляем обработчик события на кнопку оформления заказа
+		if (this._checkoutButton) {
+				this._checkoutButton.addEventListener('click', () => {
+					eventHub.emit('checkout:open');
+				});
 		}
 
-        // Инициализируем корзину как пустую
+    // Инициализируем корзину как пустую
 		this.cartItems = [];
-		this.checkoutButton.disabled = true; // Изначально кнопка не активна
+		this._checkoutButton.disabled = true; // Изначально кнопка не активна
 	}
 
-    // Метод для активации/деактивации кнопки оформления заказа
+  // Метод для активации/деактивации кнопки оформления заказа
 	enableCheckoutButton(enable: boolean) {
-		this.checkoutButton.disabled = !enable;
+		this._checkoutButton.disabled = enable;
 	}
 
-    // Сеттер для обновления списка товаров в корзине
+  // Сеттер для обновления списка товаров в корзине
 	set cartItems(items: HTMLElement[]) {
 		if (items.length) {
-			this.itemList.replaceChildren(...items); // Если есть товары, отображаем их
+			this._itemList.replaceChildren(...items); // Если есть товары, отображаем их
 		} else {
-			this.itemList.replaceChildren(
+			this._itemList.replaceChildren(
 				createElement<HTMLParagraphElement>('p', {
-					textContent: 'Your cart is empty', // Если товаров нет, показываем сообщение
+					textContent: 'Корзина пуста', // Если товаров нет, показываем сообщение
 				})
 			);
 		}
 	}
 
-    // Сеттер для обновления общей стоимости товаров
+  // Сеттер для обновления общей стоимости товаров
 	set totalAmount(amount: number) {
-		this.updateTextContent(this.totalPriceElement, `${amount} credits`); // Обновляем текст с общей стоимостью
+		this.updateTextContent(this._totalPriceElement, `${amount} синапсов`); // Обновляем текст с общей стоимостью
 	}
 
-    // Приватный метод для обновления текста в элементе
+  // Приватный метод для обновления текста в элементе
 	private updateTextContent(element: HTMLElement, text: string) {
 		element.textContent = text; // Устанавливаем текст элемента
 	}
@@ -63,6 +63,6 @@ export class ShoppingCart extends BaseWidget<ICartView> {
     renderWidget(data: {}): HTMLElement {
         console.log('ShoppingCart.renderWidget вызван');
         console.log('ShoppingCart отрендерен');
-        return this.containerElement;
+        return this.container;
     }
 }

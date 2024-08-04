@@ -10,8 +10,8 @@ export class OperationResult extends BaseWidget<ILuck> {
 	constructor(showElement: HTMLElement, userActions: ILuckActions) {
 		super(showElement);
 		// Поиск и инициализация элементов
-		this.closeButton = ensureElement<HTMLElement>('.modal-close', this.containerElement);
-		this.resultInfo = ensureElement<HTMLElement>('.result-info', this.containerElement);
+		this.closeButton = ensureElement<HTMLElement>('.modal-close', this.container);
+		this.resultInfo = ensureElement<HTMLElement>('.result-info', this.container);
 
 		// Назначение обработчика клика
 		if (userActions?.onAction) {

@@ -18,7 +18,7 @@ export class Modal extends BaseWidget<IModalData> {
 
 		// Добавляем обработчики событий
 		this._closeButton.addEventListener('click', this.close.bind(this));
-		this.containerElement.addEventListener('mousedown', this.close.bind(this));
+		this.container.addEventListener('mousedown', this.close.bind(this));
 		this._content.addEventListener('mousedown', (event) => event.stopPropagation());
 	}
 
@@ -30,14 +30,14 @@ export class Modal extends BaseWidget<IModalData> {
 	// Метод для открытия модального окна
 	open() {
 		console.log('Вызван метод open() модального окна');
-		this.containerElement.classList.add('modal_active'); // Добавляем класс для активации
+		this.container.classList.add('modal_active'); // Добавляем класс для активации
 		console.log('Класс modal_active добавлен к модальному окну');
 		this.events.emit('modal:open'); // Отправляем событие об открытии
 	}
 
 	// Метод для закрытия модального окна
 	close() {
-		this.containerElement.classList.remove('modal_active'); // Удаляем класс активации
+		this.container.classList.remove('modal_active'); // Удаляем класс активации
 		this.content = null; // Очищаем контент
 		this.events.emit('modal:close'); // Отправляем событие о закрытии
 	}
@@ -47,6 +47,6 @@ export class Modal extends BaseWidget<IModalData> {
 		console.log('Modal.render вызван с данными:', data);
 		super.renderWidget(data); // Вызов рендеринга из базового класса
 		this.open(); // Открываем модальное окно
-		return this.containerElement; // Возвращаем контейнер
+		return this.container; // Возвращаем контейнер
 	}
 }

@@ -37,7 +37,7 @@ export class ProductCard extends BaseWidget<IProductInfo> {
 
         // Добавление обработчика клика на контейнер карточки
         if (userActions?.onClick) {
-            this.containerElement.addEventListener('click', userActions.onClick);
+            this.container.addEventListener('click', userActions.onClick);
         }
     }
     
@@ -50,11 +50,11 @@ export class ProductCard extends BaseWidget<IProductInfo> {
 
     // Сеттеры и геттеры для свойств карточки товара
     set productId(id: string) {
-        this.containerElement.dataset.productId = id;
+        this.container.dataset.productId = id;
     }
 
     get productId(): string {
-        return this.containerElement.dataset.productId || '';
+        return this.container.dataset.productId || '';
     }
 
     set title(title: string) {

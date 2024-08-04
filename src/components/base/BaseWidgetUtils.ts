@@ -1,7 +1,7 @@
 // Базовые компоненты
 
 export abstract class BaseWidget<T> {
-	protected constructor(protected readonly containerElement: HTMLElement) {
+	protected constructor(protected readonly container: HTMLElement) {
 	    // Код в конструкторе выполняется до всех объявлений в дочернем классе
 	}
     
@@ -54,9 +54,9 @@ export abstract class BaseWidget<T> {
 		}
 	}
 
-    // Возвращаем корневой DOM-элемент
+  // Возвращаем корневой DOM-элемент
 	renderWidget(data?: Partial<T>): HTMLElement {
 		Object.assign(this as object, data ?? {});
-		return this.containerElement;
+		return this.container;
 	}
 }
