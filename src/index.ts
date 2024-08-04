@@ -21,8 +21,8 @@ const larekService = new ProjectAPI(CDN_URL, API_URL);
 const productCatalogTemplate = ensureElement<HTMLTemplateElement>('#card-catalog');
 const productPreviewTemplate = ensureElement<HTMLTemplateElement>('#card-preview');
 const productCartTemplate = ensureElement<HTMLTemplateElement>('#card-basket');
-const cartTemplate = ensureElement<HTMLTemplateElement>('#basket');
-const shippingTemplate = ensureElement<HTMLTemplateElement>('#order');
+const basketTemplate = ensureElement<HTMLTemplateElement>('#basket');
+const orderTemplate = ensureElement<HTMLTemplateElement>('#order');
 const contactTemplate = ensureElement<HTMLTemplateElement>('#contacts');
 const successTemplate = ensureElement<HTMLTemplateElement>('#success');
 
@@ -30,48 +30,70 @@ const successTemplate = ensureElement<HTMLTemplateElement>('#success');
 const appState = new StoreState({}, eventHub);
 const page = new Page(document.body, eventHub);
 const modal = new Modal(ensureElement<HTMLElement>('#modal-container'), eventHub);
-const shoppingCart = new ShoppingCart(cloneTemplate(cartTemplate), eventHub);
-const paymentForm = new PaymentForm(cloneTemplate(shippingTemplate), eventHub, {
+const shoppingCart = new ShoppingCart(cloneTemplate(basketTemplate), eventHub);
+const paymentForm = new PaymentForm(cloneTemplate(orderTemplate), eventHub, {
     onClick: (ev: Event) => eventHub.emit('payment:change', ev.target),
 });
 const contactDetailsForm = new ContactDetailsForm(cloneTemplate(contactTemplate), eventHub);
 
 // Обработка событий
 eventHub.on<ProductListUpdateEvent>('products:updated', () => {
+    console.log('Событие products:updated сработало');
+    console.log('Инвентарь:', appState.inventory);
+    
     page.catalog = appState.inventory.map((product) => {
         const card = new ProductCard(cloneTemplate(productCatalogTemplate), {
-            onClick: () => eventHub.emit('product:select', product),
+            onClick: (event: MouseEvent) => {
+                console.log('Клик по карточке товара:', product);
+                event.preventDefault();
+                event.stopPropagation();
+                eventHub.emit('product:select', product);
+            },
         });
-        return card.renderWidget({
+        const cardElement = card.renderWidget({
+            id: product.id,
             title: product.title,
             image: product.image,
             price: product.price,
             category: product.category,
+            description: product.description || ''
         });
+        console.log('Карточка товара создана:', cardElement);
+        return cardElement;
     });
+    
+    console.log('Каталог обновлен');
 });
 
 eventHub.on('product:select', (product: IItem) => {
+    console.log('Событие product:select вызвано:', product);
     appState.setHighlightedProduct(product);
+    eventHub.emit('preview:updated', product);
 });
 
 eventHub.on('preview:updated', (product: IItem) => {
+    console.log('Событие preview:updated вызвано:', product);
     const card = new ProductCard(cloneTemplate(productPreviewTemplate), {
         onClick: () => {
+            console.log('Клик по превью продукта');
             eventHub.emit('product:toggle', product);
-            card.actionLabel = appState.shoppingBasket.includes(product) ? 'Remove from Cart' : 'Add to Cart';
         },
     });
-    modal.render({
-        content: card.renderWidget({
-            title: product.title,
-            description: product.description,
-            image: product.image,
-            price: product.price,
-            category: product.category,
-            buttonTitle: appState.shoppingBasket.includes(product) ? 'Remove from Cart' : 'Add to Cart',
-        }),
+    const cardElement = card.renderWidget({
+        id: product.id,
+        title: product.title,
+        description: product.description,
+        image: product.image,
+        price: product.price,
+        category: product.category,
+        buttonTitle: appState.shoppingBasket.includes(product) ? 'Купить' : 'Удалить из корзины',
     });
+    console.log('Рендеринг модального окна');
+    modal.render({
+        content: cardElement,
+    });
+    console.log('Открытие модального окна');
+    modal.open();
 });
 
 // Добавление и удаление продуктов из корзины
@@ -98,9 +120,13 @@ eventHub.on('cart:updated', (products: IItem[]) => {
             },
         });
         return card.renderWidget({
+            id: product.id,
             index: (index + 1).toString(),
             title: product.title,
             price: product.price,
+            description: product.description || '',
+            category: product.category,
+            image: product.image
         });
     });
     const total = products.reduce((sum, product) => sum + product.price, 0);
@@ -110,11 +136,34 @@ eventHub.on('cart:updated', (products: IItem[]) => {
 });
 
 // Открытие корзины
-eventHub.on('cart:open', () => {
+eventHub.on('basket:open', () => {
+    console.log('Событие shoppingCart:open вызвано');
     modal.render({
         content: shoppingCart.renderWidget({}),
     });
+    console.log('Модальное окно с корзиной отрендерено');
 });
+
+
+// eventHub.on('cart:open', () => {
+//     console.log('Событие shoppingCart:open вызвано');
+//     modal.render({
+//         content: shoppingCart.renderWidget({}),
+//     });
+//     console.log('Модальное окно с корзиной отрендерено');
+// });
+
+// document.addEventListener('DOMContentLoaded', () => {
+//     const cartButton = document.getElementById('cart-button');
+//     if (cartButton) {
+//         cartButton.addEventListener('click', () => {
+//             console.log('Кнопка корзины нажата');
+//             eventHub.emit('shoppingCart:open');
+//         });
+//     } else {
+//         console.error('Элемент с id "cart-button" не найден');
+//     }
+// });
 
 // Открытие формы доставки
 eventHub.on('order:begin', () => {
@@ -225,7 +274,11 @@ eventHub.on('Modal:close', () => {
 // Получение и отображение списка продуктов при загрузке страницы
 larekService
     .getProductList()
-    .then(appState.refreshInventory.bind(appState))
+    .then((products) => {
+        console.log('Получены продукты:', products);
+        appState.refreshInventory(products);
+        eventHub.emit('products:updated');
+    })
     .catch((err) => {
-        console.log(err);
+        console.error('Ошибка при получении продктов:', err);
     });

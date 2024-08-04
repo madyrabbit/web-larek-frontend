@@ -29,7 +29,9 @@ export class Modal extends BaseWidget<IModalData> {
 
 	// Метод для открытия модального окна
 	open() {
+		console.log('Вызван метод open() модального окна');
 		this.containerElement.classList.add('modal_active'); // Добавляем класс для активации
+		console.log('Класс modal_active добавлен к модальному окну');
 		this.events.emit('modal:open'); // Отправляем событие об открытии
 	}
 
@@ -42,6 +44,7 @@ export class Modal extends BaseWidget<IModalData> {
 
 	// Метод для рендеринга модального окна с данными
 	render(data: IModalData): HTMLElement {
+		console.log('Modal.render вызван с данными:', data);
 		super.renderWidget(data); // Вызов рендеринга из базового класса
 		this.open(); // Открываем модальное окно
 		return this.containerElement; // Возвращаем контейнер

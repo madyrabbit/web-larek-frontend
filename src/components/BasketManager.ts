@@ -58,4 +58,11 @@ export class ShoppingCart extends BaseWidget<ICartView> {
 	private updateTextContent(element: HTMLElement, text: string) {
 		element.textContent = text; // Устанавливаем текст элемента
 	}
+
+    // Метод рендеринга корзины
+    renderWidget(data: {}): HTMLElement {
+        console.log('ShoppingCart.renderWidget вызван');
+        console.log('ShoppingCart отрендерен');
+        return this.containerElement;
+    }
 }

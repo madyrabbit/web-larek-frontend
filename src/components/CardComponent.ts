@@ -6,40 +6,45 @@ import { elementCategories } from '../utils/constants';
 // Класс ProductCard управляет отображением карточки товара
 export class ProductCard extends BaseWidget<IProductInfo> {
     // Элементы интерфейса карточки товара
-    protected headerElement: HTMLElement; // Заголовок товара
-    protected costElement: HTMLElement; // Цена товара
-    protected pictureElement?: HTMLImageElement; // Изображение товара
-    protected detailsElement?: HTMLElement; // Описание товара
-    protected actionButton?: HTMLButtonElement; // Кнопка действия
-    protected typeElement?: HTMLElement; // Тип товара
-    protected positionElement?: HTMLElement; // Позиция в списке
-    protected actionButtonLabel: string; // Текст кнопки действия
+    protected _title: HTMLElement; // Заголовок товара
+    protected _price: HTMLElement; // Цена товара
+    protected _image?: HTMLImageElement; // Изображение товара
+    protected _description?: HTMLElement; // Описание товара
+    protected _button?: HTMLButtonElement; // Кнопка действия
+    protected _category?: HTMLElement; // Категория товара
+    protected _index?: HTMLElement; // Позиция в списке
+    protected _buttonTitle: string; // Текст кнопки действия
 
     // Конструктор класса
-    constructor(element: HTMLElement, userActions?: IActions) {
-        super(element);
+    constructor(container: HTMLElement, userActions?: IActions) {
+        super(container);
 
         // Инициализация элементов интерфейса
-        this.headerElement = ensureElement<HTMLElement>('.product__header', element);
-        this.costElement = ensureElement<HTMLElement>('.product__cost', element);
-        this.pictureElement = element.querySelector('.product__picture');
-        this.actionButton = element.querySelector('.product__action');
-        this.detailsElement = element.querySelector('.product__details');
-        this.typeElement = element.querySelector('.product__type');
-        this.positionElement = element.querySelector('.cart__item-position');
-
+        this._title = ensureElement<HTMLElement>('.card__title', container);
+        this._price = ensureElement<HTMLElement>('.card__price', container);
+        this._image = container.querySelector('.card__image');
+        this._button = container.querySelector('.card__button');
+        this._description = container.querySelector('.card__text');
+        this._category = container.querySelector('.card__category');
+        this._index = container.querySelector('.basket__item-index');
+        
         // Назначение обработчика событий для кнопки
-        if (this.actionButton && userActions) {
-            this.actionButton.addEventListener('click', (event: MouseEvent) => {
+        if (this._button && userActions) {
+            this._button.addEventListener('click', (event: MouseEvent) => {
                 userActions.onClick(event);
             });
         }
-    }
 
+        // Добавление обработчика клика на контейнер карточки
+        if (userActions?.onClick) {
+            this.containerElement.addEventListener('click', userActions.onClick);
+        }
+    }
+    
     // Метод для активации или деактивации кнопки действия
     disableActionButton(isDisabled: boolean) {
-        if (this.actionButton) {
-            this.actionButton.disabled = isDisabled;
+        if (this._button) {
+            this._button.disabled = isDisabled;
         }
     }
 
@@ -52,62 +57,71 @@ export class ProductCard extends BaseWidget<IProductInfo> {
         return this.containerElement.dataset.productId || '';
     }
 
-    set header(title: string) {
-        this.updateText(this.headerElement, title);
-    }
-
-    get header(): string {
-        return this.headerElement.textContent || '';
-    }
-
-    set cost(value: number | null) {
-        this.updateText(
-            this.costElement,
-            value ? `${value} credits` : 'Priceless'
-        );
-        this.disableActionButton(value === null);
-    }
-
-    get cost(): number {
-        return parseFloat(this.costElement.textContent || '0');
-    }
-
-    set type(value: string) {
-        this.updateText(this.typeElement, value);
-        this.typeElement.classList.add(elementCategories[value]);
-    }
-
-    get type(): string {
-        return this.typeElement.textContent || '';
-    }
-
-    set position(value: string) {
-        this.positionElement.textContent = value;
-    }
-
-    get position(): string {
-        return this.positionElement.textContent || '';
-    }
-
-    set picture(url: string) {
-        if (this.pictureElement) {
-            this.pictureElement.src = url;
-            this.pictureElement.alt = `Image of ${this.header}`;
+    set title(title: string) {
+        if (this._title) {
+            this.updateText(this._title, title);
         }
     }
 
-    set details(info: string) {
-        this.updateText(this.detailsElement, info);
+    get title(): string {
+        return this._title.textContent || '';
     }
 
-    set actionLabel(value: string) {
-        if (this.actionButton) {
-            this.actionButton.textContent = value;
+    set price(value: number | null) {
+        if (this._price) {
+            this.updateText(
+                this._price,
+                value ? `${value} credits` : 'Priceless'
+            );
+        }
+        this.disableActionButton(value === null);
+    }
+
+    get price(): number {
+        return parseFloat(this._price.textContent || '0');
+    }
+
+    set category(value: string) {
+        if (this._category) {
+            this.updateText(this._category, value);
+            this._category.classList.add(elementCategories[value]);
+        }
+    }
+
+    get category(): string {
+        return this._category.textContent || '';
+    }
+
+    set index(value: string) {
+        if (this._index) {
+            this._index.textContent = value;
+        }
+    }
+
+    get index(): string {
+        return this._index.textContent || '';
+    }
+
+    set image(value: string) {
+        this.setImageWithAltText(this._image, value, this.title);
+    }
+
+    set details(info: string) {
+        if (this._description) {
+            this.updateText(this._description, info);
+        }
+    }
+
+    set buttonTitle(value: string) {
+        if (this._button) {
+            this._button.textContent = value;
         }
     }
 
     // Вспомогательный метод для обновления текста в элементе
-    private updateText(element: HTMLElement, text: string) {
-        element.textContent = text;
+    private updateText(element: HTMLElement | null, text: string) {
+        if (element) {
+            element.textContent = text;
+        }
     }
 }
