@@ -46,7 +46,7 @@ eventHub.on<ProductListUpdateEvent>('products:updated', () => {
             onClick: (event: MouseEvent) => {
                 console.log('Клик по карточке товара:', product);
                 event.preventDefault();
-                event.stopPropagation();
+                event.stopPropagation(); // Остановить всплытие события
                 eventHub.emit('product:select', product);
             },
         });
@@ -56,7 +56,8 @@ eventHub.on<ProductListUpdateEvent>('products:updated', () => {
             image: product.image,
             price: product.price,
             category: product.category,
-            description: product.description || ''
+            description: product.description || '',
+            buttonTitle: !appState.shoppingBasket.includes(product) ? 'Купить' : 'Удалить из корзины', // Обновляем текст кнопки
         });
         console.log('Карточка товара создана:', cardElement);
         return cardElement;
@@ -74,8 +75,9 @@ eventHub.on('product:select', (product: IItem) => {
 eventHub.on('preview:updated', (product: IItem) => {
     console.log('Событие preview:updated вызвано:', product);
     const card = new ProductCard(cloneTemplate(productPreviewTemplate), {
-        onClick: () => {
+        onClick: (event: MouseEvent) => {
             console.log('Клик по превью продукта');
+            event.stopPropagation(); // Остановить всплытие события
             eventHub.emit('product:toggle', product);
         },
     });
@@ -99,9 +101,10 @@ eventHub.on('preview:updated', (product: IItem) => {
 // Добавление и удаление продуктов из корзины
 eventHub.on('product:toggle', (product: IItem) => {
     console.log('Попытка переключить продукт:', product);
-    if (appState.shoppingBasket.includes(product)) {
+    if (!appState.shoppingBasket.includes(product)) {
         console.log('Продукт добавляется в корзину:', product);
-        eventHub.emit('product:add', product);
+        appState.putInBasket(product); // Добавляем продукт в корзину
+        eventHub.emit('cart:updated', appState.shoppingBasket); // Обновляем корзину
     } else {
         console.log('Продукт удаляется из корзины:', product);
         eventHub.emit('product:remove', product);
@@ -109,6 +112,7 @@ eventHub.on('product:toggle', (product: IItem) => {
 });
 
 eventHub.on('product:add', (product: IItem) => {
+    console.log('Добавление продукта в корзину:', product);
     appState.putInBasket(product);
 });
 
@@ -116,6 +120,7 @@ eventHub.on('product:remove', (product: IItem) => appState.takeOutOfBasket(produ
 
 // Обновление корзины
 eventHub.on('cart:updated', (products: IItem[]) => {
+    console.log('Обновление корзины, текущие продукты:', products); // Логирование текущих продуктов
     shoppingCart.cartItems = products.map((product, index) => {
         const card = new ProductCard(cloneTemplate(productCartTemplate), {
             onClick: () => {
@@ -123,19 +128,37 @@ eventHub.on('cart:updated', (products: IItem[]) => {
             },
         });
         return card.renderWidget({
-            id: product.id,
             index: (index + 1).toString(),
             title: product.title,
             price: product.price,
-            description: product.description || '',
-            category: product.category,
-            image: product.image
+            buttonTitle: 'Удалить из корзины', // Обновите текст кнопки
         });
     });
+
     const total = products.reduce((sum, product) => sum + product.price, 0);
     shoppingCart.totalAmount = total;
     appState.currentTransaction.totalAmount = total;
     shoppingCart.enableCheckoutButton(total === 0);
+    
+    // Обновление счетчика товаров
+    const cartCountElement = document.querySelector('.header__basket-counter');
+    if (cartCountElement) {
+        cartCountElement.textContent = products.length.toString();
+    } else {
+        console.error('Элемент для счетчика товаров не найден');
+    }
+
+    // Обновление отображения карточки товаров в корзине
+    console.log('Проверка наличия контейнера для карточек товаров');
+    const cartContainer = document.querySelector('.cart-container'); // Убедитесь, что селектор правильный
+    if (cartContainer) {
+        cartContainer.innerHTML = ''; // Очищаем контейнер
+        shoppingCart.cartItems.forEach(item => {
+            cartContainer.appendChild(item); // Добавляем обновленные карточки
+        });
+    } else {
+        console.error('Контейнер для карточек товаров не найден'); // Логируем ошибку, если контейнер не найден
+    }
 });
 
 // Открытие корзины
@@ -232,7 +255,7 @@ eventHub.on('order:proceed', () => {
     });
 });
 
-// Оформление заказа
+// Офомление заказа
 eventHub.on('contacts:confirm', () => {
     larekService
         .orderProducts(appState.currentTransaction)
@@ -260,12 +283,12 @@ eventHub.on('Modal:open', () => {
     page.locked = true;
 });
 
-// Модальное окно закрыто
+// Модльное окно закрыто
 eventHub.on('Modal:close', () => {
     page.locked = false;
 });
 
-// Получение и отображение списка продуктов при загрузке страницы
+// Получение и отображение списка прдуктов при загрузке страницы
 larekService
     .getProductList()
     .then((products) => {
