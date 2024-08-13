@@ -1,3 +1,4 @@
+import { IItem } from '../types';
 import { BaseWidget } from './base/BaseWidgetUtils';
 import { createElement, ensureElement } from './../utils/utils';
 import { ICartView } from '../types';
@@ -27,7 +28,7 @@ export class ShoppingCart extends BaseWidget<ICartView> {
 		}
 
     // Инициализируем корзину как пустую
-		this.cartItems = [];
+		this.cartItems = []; // Инициализация cartItems как пустой массив
 		this._checkoutButton.disabled = true; // Изначально кнопка не активна
 	}
 
@@ -51,12 +52,12 @@ export class ShoppingCart extends BaseWidget<ICartView> {
 
   // Сеттер для обновления общей стоимости товаров
 	set totalAmount(amount: number) {
-		this.updateTextContent(this._totalPriceElement, `${amount} синапсов`); // Обновляем текст с общей стоимостью
+		this.updateTextContent(this._totalPriceElement, `${amount} синапсов`); // Обновляем текст с общей стоимотью
 	}
 
   // Приватный метод для обновления текста в элементе
 	private updateTextContent(element: HTMLElement, text: string) {
-		element.textContent = text; // Устанавливаем текст элемента
+		element.textContent = text; // Устанавливаем текст лемента
 	}
 
     // Метод рендеринга корзины
@@ -64,5 +65,25 @@ export class ShoppingCart extends BaseWidget<ICartView> {
         console.log('ShoppingCart.renderWidget вызван');
         console.log('ShoppingCart отрендерен');
         return this.container;
+    }
+
+    putInBasket(product: IItem) {
+        const itemElement = createElement<HTMLElement>('div', {
+            textContent: product.title // Создаем элемент для отображения товара
+        });
+        this.cartItems = [...this.cartItems, itemElement]; // Добавляем элемент в cartItems
+        this.updateCartItemsDisplay(); // Обновляем отображение товаров в корзине
+    }
+
+    // Новый метод для обновления отображения товаров в корзине
+    private updateCartItemsDisplay() {
+        const items = this.cartItems.map(item => createElement<HTMLElement>('div', {
+            textContent: item.title // Используем свойство title вместо name
+        }));
+        this.cartItems = items; // Обновляем cartItems для отображения
+    }
+
+    takeOutOfBasket(product: IItem) {
+        this.cartItems = this.cartItems.filter(item => item.id !== product.id); // Удаление товара из корзины
     }
 }

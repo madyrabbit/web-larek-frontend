@@ -73,7 +73,7 @@ eventHub.on('product:select', (product: IItem) => {
 });
 
 eventHub.on('preview:updated', (product: IItem) => {
-    console.log('Событие preview:updated вызвано:', product);
+    console.log('Событие preview:updated вы��вано:', product);
     const card = new ProductCard(cloneTemplate(productPreviewTemplate), {
         onClick: (event: MouseEvent) => {
             console.log('Клик по превью продукта');
@@ -150,12 +150,16 @@ eventHub.on('cart:updated', (products: IItem[]) => {
 
     // Обновление отображения карточки товаров в корзине
     console.log('Проверка наличия контейнера для карточек товаров');
-    const cartContainer = document.querySelector('.cart-container'); // Убедитесь, что селектор правильный
+    const cartContainer = document.querySelector('#modal-container'); // Исправлено на правильный селектор
     if (cartContainer) {
         cartContainer.innerHTML = ''; // Очищаем контейнер
-        shoppingCart.cartItems.forEach(item => {
-            cartContainer.appendChild(item); // Добавляем обновленные карточки
-        });
+        if (Array.isArray(shoppingCart.cartItems)) { // Проверка, что cartItems - это массив
+            shoppingCart.cartItems.forEach(item => {
+                cartContainer.appendChild(item); // Добавляем обновленные карточки
+            });
+        } else {
+            console.error('cartItems не является массивом или не определен');
+        }
     } else {
         console.error('Контейнер для карточек товаров не найден'); // Логируем ошибку, если контейнер не найден
     }
