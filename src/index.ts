@@ -73,7 +73,7 @@ eventHub.on('product:select', (product: IItem) => {
 });
 
 eventHub.on('preview:updated', (product: IItem) => {
-    console.log('Событие preview:updated вы��вано:', product);
+    console.log('Событие preview:updated вызвано:', product);
     const card = new ProductCard(cloneTemplate(productPreviewTemplate), {
         onClick: (event: MouseEvent) => {
             console.log('Клик по превью продукта');
@@ -124,7 +124,8 @@ eventHub.on('cart:updated', (products: IItem[]) => {
     shoppingCart.cartItems = products.map((product, index) => {
         const card = new ProductCard(cloneTemplate(productCartTemplate), {
             onClick: () => {
-                eventHub.emit('product:remove', product);
+                console.log('Клик по карточке товара для удаления:', product);
+                eventHub.emit('product:remove', product); // Эмитируем событие для удаления продукта
             },
         });
         return card.renderWidget({
@@ -150,7 +151,7 @@ eventHub.on('cart:updated', (products: IItem[]) => {
 
     // Обновление отображения карточки товаров в корзине
     console.log('Проверка наличия контейнера для карточек товаров');
-    const cartContainer = document.querySelector('#modal-container'); // Исправлено на правильный селектор
+    const cartContainer = document.querySelector('.cart-container'); // Исправлено на правильный селектор
     if (cartContainer) {
         cartContainer.innerHTML = ''; // Очищаем контейнер
         if (Array.isArray(shoppingCart.cartItems)) { // Проверка, что cartItems - это массив
@@ -172,6 +173,17 @@ eventHub.on('shoppingCart:open', () => {
         content: shoppingCart.renderWidget({}),
     });
     console.log('Модальное окно с корзиной отрендерено');
+
+    // Проверка наличия кнопки оформления заказа после рендеринга
+    const checkoutButton = document.querySelector('.basket__button');
+    if (checkoutButton) {
+        checkoutButton.addEventListener('click', () => {
+            console.log('Кнопка оформления заказа нажата');
+            eventHub.emit('order:begin'); // Эмитируем событие для открытия формы доставки
+        });
+    } else {
+        console.error('Кнопка оформления заказа не найдена');
+    }
 });
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -197,6 +209,19 @@ eventHub.on('order:begin', () => {
         }),
     });
     appState.currentTransaction.lineItems = appState.shoppingBasket.map((product) => product.id);
+
+    // Используем setTimeout для ожидания рендеринга
+    setTimeout(() => {
+        const nextButton = document.querySelector('.basket__button');
+        if (nextButton) {
+            nextButton.addEventListener('click', () => {
+                console.log('Кнопка "Далее" нажата');
+                eventHub.emit('order:proceed'); // Эмитируем событие для перехода к форме контактов
+            });
+        } else {
+            console.error('Кнопка "Далее" не найдена');
+        }
+    }, 0);
 });
 
 // Смена способа оплаты
